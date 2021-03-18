@@ -1,0 +1,119 @@
+{
+  "name": "arduino-pro-ide",
+  "description": "Arduino Pro IDE",
+  "main": "scripts/arduino-pro-ide-electron-main.js",
+  "author": "Arduino SA",
+  "dependencies": {
+    "arduino-ide-extension": "file:../working-copy/arduino-ide-extension",
+    "arduino-debugger-extension": "file:../working-copy/arduino-debugger-extension",
+    "arduino-create-extension": "file:../working-copy/arduino-create-extension"
+  },
+  "resolutions": {
+    "**/fs-extra": "^4.0.3"
+  },
+  "devDependencies": {
+    "@theia/cli": "next",
+    "electron-builder": "^22.4.1"
+  },
+  "scripts": {
+    "build": "yarn download:plugins && theia build --mode development && yarn patch:main",
+    "build:release": "yarn download:plugins && theia build --mode production && yarn patch:main",
+    "package": "electron-builder --publish=never",
+    "download:plugins": "theia download:plugins",
+    "patch:main": "node ./scripts/patch-backend-main ."
+  },
+  "engines": {
+    "node": ">=10.11.0 <12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arduino/arduino-pro-ide.git"
+  },
+  "// Notes:": [
+    "The resolution for `fs-extra` was required due to this: https://spectrum.chat/theia/general/our-theia-electron-builder-app-no-longer-starts~f5cf09a0-6d88-448b-8818-24ad0ec2ee7c"
+  ],
+  "theia": {
+    "target": "electron",
+    "frontend": {
+      "config": {
+        "disallowReloadKeybinding": true
+      }
+    }
+  },
+  "build": {
+    "productName": "Arduino Pro IDE",
+    "appId": "arduino.ProIDE",
+    "asar": false,
+    "directories": {
+      "buildResources": "resources"
+    },
+    "files": [
+      "src-gen",
+      "lib",
+      "scripts",
+      "!node_modules/**/*.{ts,map}",
+      "!node_modules/**/*.spec.js",
+      "!node_modules/@theia/**/test/*",
+      "!node_modules/@theia/**/src/*.ts",
+      "!node_modules/@theia/**/lib/*browser/*",
+      "!node_modules/@typefox/monaco-editor-core/*",
+      "!node_modules/oniguruma/*",
+      "!node_modules/onigasm/*"
+    ],
+    "extraResources": [
+      {
+        "from": "plugins",
+        "to": "app/plugins"
+      }
+    ],
+    "win": {
+      "target": [
+        "zip"
+      ],
+      "artifactName": "${productName}-${env.ARDUINO_VERSION}-${os}.${ext}"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "artifactName": "${productName}-${env.ARDUINO_VERSION}-${os}.${ext}",
+      "darkModeSupport": true
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "zip"
+        },
+        {
+          "target": "AppImage",
+          "arch": "armv7l"
+        }
+      ],
+      "category": "Development",
+      "icon": "resources/icons",
+      "artifactName": "${productName}-${env.ARDUINO_VERSION}-${os}-${arch}.${ext}"
+    },
+    "dmg": {
+      "icon": "resources/icon.icns",
+      "iconSize": 128,
+      "contents": [
+        {
+          "x": 380,
+          "y": 240,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 122,
+          "y": 240,
+          "type": "file"
+        }
+      ]
+    }
+  },
+  "theiaPluginsDir": "plugins",
+  "theiaPlugins": {
+    "vscode-yaml": "https://open-vsx.org/api/redhat/vscode-yaml/0.7.2/file/redhat.vscode-yaml-0.7.2.vsix",
+    "vscode-builtin-cpp": "http://open-vsx.org/api/vscode/cpp/1.39.1/file/vscode.cpp-1.39.1.vsix"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "arduino-debugger-extension",
+  "version": "0.0.7",
+  "description": "An extension for debugging Arduino programs",
+  "repository": "https://github.com/bcmi-labs/arduino-editor.git",
+  "author": "Arduino SA",
+  "license": "MIT",
+  "engines": {
+    "node": ">=10.11.0 <12"
+  },
+  "dependencies": {
+    "@theia/debug": "next",
+    "arduino-ide-extension": "0.0.7",
+    "cdt-gdb-adapter": "^0.0.14",
+    "vscode-debugadapter": "^1.26.0",
+    "vscode-debugprotocol": "^1.26.0"
+  },
+  "scripts": {
+    "prepare": "yarn run clean && yarn run build",
+    "clean": "rimraf lib",
+    "lint": "tslint -c ../configs/tslint.json --project ./tsconfig.json",
+    "build": "tsc && yarn lint",
+    "watch": "tsc -w"
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "theiaExtensions": [
+    {
+      "backend": "lib/node/arduino-debug-backend-module",
+      "frontend": "lib/browser/arduino-debug-frontend-module"
+    }
+  ]
+}
