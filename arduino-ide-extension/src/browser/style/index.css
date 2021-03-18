@@ -1,0 +1,63 @@
+@import './list-widget.css';
+@import './boards-config-dialog.css';
+@import './main.css';
+@import './monitor.css';
+@import './arduino-select.css';
+@import './status-bar.css';
+@import './terminal.css';
+@import './editor.css';
+@import './settings-dialog.css';
+
+.theia-input.warning:focus {
+    outline-width: 1px;
+    outline-style: solid;
+    outline-offset: -1px;
+    opacity: 1 !important;
+    color: var(--theia-warningForeground);
+    background-color: var(--theia-warningBackground);
+}
+
+.theia-input.warning {
+    background-color: var(--theia-warningBackground);
+}
+
+.theia-input.warning::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: var(--theia-warningForeground);
+    background-color: var(--theia-warningBackground);
+    opacity: 1; /* Firefox */
+}
+
+.theia-input.warning:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: var(--theia-warningForeground);
+    background-color: var(--theia-warningBackground);
+}
+
+.theia-input.warning::-ms-input-placeholder { /* Microsoft Edge */
+    color: var(--theia-warningForeground);
+    background-color: var(--theia-warningBackground);
+}
+
+/* Overrule the default Theia CSS button styles. */
+
+button.theia-button,
+.theia-button {
+    border: 1px solid var(--theia-dropdown-border);
+}
+
+button.theia-button:hover,
+.theia-button:hover {
+    border: 1px solid var(--theia-focusBorder);
+}
+
+button.theia-button {
+    height: 31px;
+}
+
+button.theia-button.secondary {
+    background-color: var(--theia-secondaryButton-background);
+    color: var(--theia-foreground);
+}
+
+button.theia-button.main {
+    color: var(--theia-button-foreground);
+}
