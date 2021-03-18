@@ -1,0 +1,50 @@
+{
+  "private": true,
+  "name": "browser-app",
+  "version": "0.0.5",
+  "license": "MIT",
+  "dependencies": {
+    "@theia/core": "next",
+    "@theia/cpp": "next",
+    "@theia/debug": "next",
+    "@theia/editor": "next",
+    "@theia/file-search": "next",
+    "@theia/filesystem": "next",
+    "@theia/languages": "next",
+    "@theia/messages": "next",
+    "@theia/monaco": "next",
+    "@theia/navigator": "next",
+    "@theia/plugin-ext": "next",
+    "@theia/plugin-ext-vscode": "next",
+    "@theia/preferences": "next",
+    "@theia/process": "next",
+    "@theia/terminal": "next",
+    "@theia/workspace": "next",
+    "arduino-ide-extension": "0.0.5",
+    "arduino-debugger-extension": "0.0.5"
+  },
+  "devDependencies": {
+    "@theia/cli": "next"
+  },
+  "scripts": {
+    "prepare": "theia build --mode development",
+    "start": "theia start --plugins=local-dir:../plugins",
+    "watch": "theia build --watch --mode development"
+  },
+  "theia": {
+    "frontend": {
+      "config": {
+        "applicationName": "Arduino Pro IDE",
+        "defaultTheme": "arduino-theme",
+        "preferences": {
+          "editor.autoSave": "on"
+        }
+      }
+    },
+    "generator": {
+      "config": {
+        "preloadTemplate": "<div class='theia-preload' style='background-color: rgb(237, 241, 242);'></div>"
+      }
+    }
+  }
+}
