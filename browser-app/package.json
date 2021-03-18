@@ -1,0 +1,56 @@
+{
+  "private": true,
+  "name": "browser-app",
+  "version": "0.1.3",
+  "license": "MIT",
+  "dependencies": {
+    "@theia/core": "next",
+    "@theia/debug": "next",
+    "@theia/editor": "next",
+    "@theia/file-search": "next",
+    "@theia/filesystem": "next",
+    "@theia/messages": "next",
+    "@theia/monaco": "next",
+    "@theia/navigator": "next",
+    "@theia/plugin-ext": "next",
+    "@theia/plugin-ext-vscode": "next",
+    "@theia/preferences": "next",
+    "@theia/process": "next",
+    "@theia/terminal": "next",
+    "@theia/workspace": "next",
+    "arduino-ide-extension": "0.1.3"
+  },
+  "devDependencies": {
+    "@theia/cli": "next"
+  },
+  "scripts": {
+    "prepare": "theia build --mode development",
+    "start": "theia start --plugins=local-dir:../plugins",
+    "watch": "theia build --watch --mode development"
+  },
+  "theia": {
+    "frontend": {
+      "config": {
+        "applicationName": "Arduino Pro IDE",
+        "defaultTheme": "arduino-theme",
+        "status": "Alpha",
+        "preferences": {
+          "editor.autoSave": "on",
+          "editor.minimap.enabled": false,
+          "editor.tabSize": 2,
+          "editor.scrollBeyondLastLine": false
+        }
+      }
+    },
+    "backend": {
+      "config": {
+        "configDirName": ".arduinoProIDE"
+      }
+    },
+    "generator": {
+      "config": {
+        "preloadTemplate": "<div class='theia-preload' style='background-color: rgb(237, 241, 242);'></div>"
+      }
+    }
+  }
+}
