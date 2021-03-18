@@ -1,0 +1,178 @@
+name: Arduino Pro IDE
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron: '0 3 * * *' # run every day at 3AM (https://docs.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule)
+
+jobs:
+
+  build:
+    strategy:
+      matrix:
+        config:
+          - os: windows-2016
+          - os: ubuntu-latest
+          - os: macos-latest
+          # - os: rsora-rpi-arm # self-hosted armhf
+    runs-on: ${{ matrix.config.os }}
+    timeout-minutes: 90
+    env:
+      CERTIFICATE_PATH: /tmp/macos_signing_certificate.p12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.14.1'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install Python 2.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: '2.7'
+
+      - name: Generate signing certificate file [macOS]
+        if: runner.OS == 'macOS'
+        run: |
+            # APPLE_SIGNING_CERTIFICATE_P12 secret was produced by following the procedure from:
+            # https://www.kencochrane.com/2020/08/01/build-and-sign-golang-binaries-for-macos-with-github-actions/#exporting-the-developer-certificate
+            echo "${{ secrets.APPLE_SIGNING_CERTIFICATE_P12 }}" | base64 --decode > "${{ env.CERTIFICATE_PATH }}"
+
+      - name: Package
+        shell: bash
+        env:
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AC_USERNAME: ${{ secrets.AC_USERNAME }}
+          AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          IS_NIGHTLY: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master') }}
+          IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+            # electron-builder will try to sign during the Windows job if these environment variables are defined
+            if [ "${{ runner.OS }}" = "macOS" ]; then
+              # See: https://www.electron.build/code-signing
+              export CSC_LINK="${{ env.CERTIFICATE_PATH }}"
+              export CSC_KEY_PASSWORD="${{ secrets.KEYCHAIN_PASSWORD }}"
+            fi
+            yarn --cwd ./electron/packager/
+            yarn --cwd ./electron/packager/ package
+
+      - name: Upload [GitHub Actions]
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts
+          path: electron/build/dist/build-artifacts/
+
+  changelog:
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      BODY: ${{ steps.changelog.outputs.BODY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # To fetch all history for all branches and tags.
+
+      - name: Generate Changelog
+        id: changelog
+        env:
+          IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+            export LATEST_TAG=$(git describe --abbrev=0)
+            export GIT_LOG=$(git log --pretty=" - %s [%h]" $LATEST_TAG..HEAD | sed 's/ *$//g')
+            if [ "$IS_RELEASE" = true ]; then
+              export BODY=$(echo -e "$GIT_LOG")
+            else 
+              export LATEST_TAG_WITH_LINK=$(echo "[$LATEST_TAG](https://github.com/arduino/arduino-pro-ide/releases/tag/$LATEST_TAG)")
+              if [ -z "$GIT_LOG" ]; then
+                  export BODY="There were no changes since version $LATEST_TAG_WITH_LINK."
+              else
+                  export BODY=$(echo -e "Changes since version $LATEST_TAG_WITH_LINK:\n$GIT_LOG")
+              fi
+            fi
+            echo -e "$BODY"
+            OUTPUT_SAFE_BODY="${BODY//'%'/'%25'}"
+            OUTPUT_SAFE_BODY="${OUTPUT_SAFE_BODY//$'\n'/'%0A'}"
+            OUTPUT_SAFE_BODY="${OUTPUT_SAFE_BODY//$'\r'/'%0D'}"
+            echo "::set-output name=BODY::$OUTPUT_SAFE_BODY"
+            echo "$BODY" > CHANGELOG.txt
+
+      - name: Upload Changelog [GitHub Actions]
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master')
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts
+          path: CHANGELOG.txt
+
+  publish:
+    needs: changelog
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download [GitHub Actions]
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
+          path: build-artifacts
+
+      - name: Publish Nightly [S3]
+        uses: docker://plugins/s3
+        env:
+          PLUGIN_SOURCE: "build-artifacts/*"
+          PLUGIN_STRIP_PREFIX: "build-artifacts/"
+          PLUGIN_TARGET: "/arduino-pro-ide/nightly"
+          PLUGIN_BUCKET: ${{ secrets.DOWNLOADS_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  release:
+    needs: changelog
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download [GitHub Actions]
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
+          path: build-artifacts
+
+      - name: Get Tag
+        id: tag_name
+        run: |
+          echo ::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}
+
+      - name: Publish Release [GitHub]
+        uses: kittaakos/upload-release-action@dev
+        with:
+          repo_token: ${{ secrets.RELEASE_TOKEN }}
+          repo_name: arduino/arduino-pro-ide
+          release_name: ${{ steps.tag_name.outputs.TAG_NAME }}
+          file: build-artifacts/*
+          tag: ${{ github.ref }}
+          file_glob: true
+          body: ${{ needs.changelog.outputs.BODY }}
+
+      - name: Publish Release [S3]
+        uses: docker://plugins/s3
+        env:
+          PLUGIN_SOURCE: "build-artifacts/*"
+          PLUGIN_STRIP_PREFIX: "build-artifacts/"
+          PLUGIN_TARGET: "/arduino-pro-ide"
+          PLUGIN_BUCKET: ${{ secrets.DOWNLOADS_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

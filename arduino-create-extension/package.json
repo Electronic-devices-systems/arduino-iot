@@ -1,0 +1,47 @@
+{
+  "name": "arduino-create-extension",
+  "version": "0.1.2",
+  "description": "An extension for the Arduino Create service",
+  "repository": "https://github.com/bcmi-labs/arduino-editor.git",
+  "author": "Arduino SA",
+  "license": "MIT",
+  "dependencies": {
+    "@theia/core": "next",
+    "@theia/electron": "next",
+    "@types/auth0-js": "8.11.2",
+    "arduino-ide-extension": "0.1.2",
+    "auth0-js": "9.11.3",
+    "hash.js": "^1.1.7"
+  },
+  "scripts": {
+    "prepare": "yarn run clean && yarn run build",
+    "clean": "rimraf lib",
+    "lint": "tslint -c ../configs/tslint.json --project ./tsconfig.json",
+    "build": "tsc && yarn lint",
+    "watch": "tsc -w"
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/arduino-create-extension-frontend-module"
+    },
+    {
+      "frontendElectron": "lib/electron-browser/arduino-create-electron-frontend-module",
+      "backend": "lib/node/arduino-create-backend-module"
+    }
+  ],
+  "theia": {
+    "frontend": {
+      "config": {
+        "preferences": {
+          "files.exclude": {
+            "**/.arduino_create": true
+          }
+        }
+      }
+    }
+  }
+}

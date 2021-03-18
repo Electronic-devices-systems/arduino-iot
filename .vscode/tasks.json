@@ -1,0 +1,104 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "IDE2 - Rebuild Electron App",
+      "type": "shell",
+      "command": "yarn rebuild:browser && yarn rebuild:electron",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "clear": false
+      }
+    },
+    {
+      "label": "IDE2 - Start Browser App",
+      "type": "shell",
+      "command": "yarn --cwd ./browser-app start",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "clear": true
+      }
+    },
+    {
+      "label": "IDE2 - Watch IDE Extension",
+      "type": "shell",
+      "command": "yarn --cwd ./arduino-ide-extension watch",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "clear": false
+      }
+    },
+    {
+      "label": "IDE2 - Watch Create Extension",
+      "type": "shell",
+      "command": "yarn --cwd ./arduino-create-extension watch",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "clear": false
+      }
+    },
+    {
+      "label": "IDE2 - Watch Debugger Extension",
+      "type": "shell",
+      "command": "yarn --cwd ./arduino-debugger-extension watch",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "clear": false
+      }
+    },
+    {
+      "label": "IDE2 - Watch Browser App",
+      "type": "shell",
+      "command": "yarn --cwd ./browser-app watch",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "clear": false
+      }
+    },
+    {
+      "label": "IDE2 - Watch Electron App",
+      "type": "shell",
+      "command": "yarn --cwd ./electron-app watch",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "clear": false
+      }
+    },
+    {
+      "label": "IDE2 - Watch All [Browser]",
+      "type": "shell",
+      "dependsOn": [
+        "IDE2 - Watch IDE Extension",
+        "IDE2 - Watch Create Extension",
+        "IDE2 - Watch Debugger Extension",
+        "IDE2 - Watch Browser App"
+      ]
+    },
+    {
+      "label": "IDE2 - Watch All [Electron]",
+      "type": "shell",
+      "dependsOn": [
+        "IDE2 - Watch IDE Extension",
+        "IDE2 - Watch Create Extension",
+        "IDE2 - Watch Debugger Extension",
+        "IDE2 - Watch Electron App"
+      ]
+    }
+  ]
+}

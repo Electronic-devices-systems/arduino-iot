@@ -1,0 +1,27 @@
+.sketchbook-widget .theia-header {
+    text-transform: none;
+}
+
+.sketchbook-widget .theia-Tree.theia-FileTree {
+    height: 100%;
+}
+
+.sketchbook-widget .sketchbook-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.sketchbook-widget .theia-view-container > .p-SplitPanel > .p-SplitPanel-handle:after {
+    background: var(--theia-sideBarSectionHeader-background);
+    background-color: var(--theia-sideBarSectionHeader-background);
+    min-height: 2px;
+    min-width: 2px
+}
+
+.theia-view-container .part > .body {
+    height: var(--theia-view-container-content-height);
+    min-width: 50px;
+    min-height: 120px;
+}
